@@ -4,11 +4,31 @@ import { useState, FormEvent } from 'react';
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(true);
-    // In a real app, this would send data to a backend
+    setLoading(true);
+
+    const form = e.currentTarget;
+    const data = new FormData(form);
+
+    const response = await fetch("https://formspree.io/f/maqdgyjr", {
+      method: "POST",
+      body: data,
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (response.ok) {
+      setSubmitted(true);
+      form.reset();
+    } else {
+      alert("Something went wrong. Please try again.");
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -22,7 +42,9 @@ export default function Contact() {
         >
           <div className="p-8 md:p-12">
             <div className="text-center mb-10">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Request a Free Quote</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                Request a Free Quote
+              </h2>
               <p className="text-gray-600">
                 Ready to streamline your logistics? Fill out the form below and I'll get back to you within 24 hours.
               </p>
@@ -30,38 +52,49 @@ export default function Contact() {
 
             {submitted ? (
               <div className="text-center py-12 bg-green-50 rounded-xl">
-                <h3 className="text-2xl font-bold text-green-600 mb-2">Thank You!</h3>
-                <p className="text-gray-700">Your quote request has been received. I will contact you shortly.</p>
+                <h3 className="text-2xl font-bold text-green-600 mb-2">
+                  Thank You!
+                </h3>
+                <p className="text-gray-700">
+                  Your quote request has been received. I will contact you shortly.
+                </p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Address
+                    </label>
                     <input 
-                      type="email" 
-                      id="email" 
+                      type="email"
+                      name="email"
                       required
                       className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                       placeholder="you@company.com"
                     />
                   </div>
+
                   <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Phone Number
+                    </label>
                     <input 
-                      type="tel" 
-                      id="phone" 
+                      type="tel"
+                      name="phone"
                       required
                       className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                       placeholder="+65 1234 5678"
                     />
                   </div>
                 </div>
-                
+
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">Message (Optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Message (Optional)
+                  </label>
                   <textarea 
-                    id="message" 
+                    name="message"
                     rows={4}
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                     placeholder="Tell me about your shipment needs..."
@@ -69,10 +102,12 @@ export default function Contact() {
                 </div>
 
                 <button 
-                  type="submit" 
-                  className="w-full bg-blue-900 text-white font-bold py-4 rounded-xl hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-blue-900 text-white font-bold py-4 rounded-xl hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 disabled:opacity-70"
                 >
-                  Send Request <Send size={20} />
+                  {loading ? "Sending..." : "Send Request"} 
+                  <Send size={20} />
                 </button>
               </form>
             )}
